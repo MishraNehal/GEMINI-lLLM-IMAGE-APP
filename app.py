@@ -16,14 +16,16 @@ with st.sidebar:
     api_key, text_model, image_model = load_env()
     st.text_input("GEMINI Text Model", value=text_model, key="text_model")
     st.text_input("GEMINI Image Model", value=image_model, key="image_model")
-    provided_key = st.text_input("Google API Key", type="password", value=api_key)
     if st.button("Initialize Client"):
-        st.session_state['client'] = GeminiClient(
-            api_key=provided_key,
-            text_model=st.session_state['text_model'],
-            image_model=st.session_state['image_model'],
-        )
-        st.success("Client initialized.")
+        if not api_key:
+            st.error("Please set GOOGLE_API_KEY in your .env file")
+        else:
+            st.session_state['client'] = GeminiClient(
+                api_key=api_key,
+                text_model=st.session_state['text_model'],
+                image_model=st.session_state['image_model'],
+            )
+            st.success("Client initialized.")
 
 tabs = st.tabs(["💬 Chat", "🖼️ Image Q&A", "🎨 Image Generation"])
 
