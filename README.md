@@ -1,5 +1,7 @@
 # Gemini LLM + Image App (End-to-End)
 
+![CI](https://github.com/MishraNehal/GEMINI-lLLM-IMAGE-APP/actions/workflows/ci.yml/badge.svg)
+
 A minimal end-to-end application that uses **Google Gemini** for both **text** and **image** workflows:
 - Chat with an LLM (Gemini 1.5 / 1.0 variants)
 - Upload an image and ask questions about it (vision)
@@ -64,6 +66,12 @@ streamlit run app.py
 ```
 
 Open the shown local URL in your browser.
+
+### Run tests
+
+```bash
+pytest -q
+```
 
 ## Project Structure
 
