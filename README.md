@@ -17,6 +17,8 @@ A minimal end-to-end application that uses **Google Gemini** for both **text** a
 - ✅ `.env` based config, no keys hardcoded
 - ✅ Reusable `services/gemini_client.py` wrapper
 - ✅ Optional image generation endpoint
+- ✅ **Conversation History** - Save, load, and manage chat conversations
+- ✅ **Free Tier Optimized** - Efficient message trimming and retry logic
 - ✅ Lightweight tests and pre-commit-style linters (optional)
 
 ## Quickstart
@@ -77,9 +79,9 @@ pytest -q
 
 ```
 gemini-llm-image-app/
-├─ app.py                     # Streamlit UI
+├─ app.py                     # Streamlit UI with conversation history
 ├─ services/
-│  └─ gemini_client.py       # Wrapper around google-generativeai
+│  └─ gemini_client.py       # Wrapper around google-generativeai (free tier optimized)
 ├─ utils/
 │  ├─ env.py                 # Env helpers
 │  └─ image_utils.py         # Image helpers
@@ -96,6 +98,8 @@ gemini-llm-image-app/
 
 - If image generation is unavailable in your region/account/tier, comment the call in the UI or switch to text+vision analysis only.
 - You can easily adapt the wrapper to different Gemini model names.
+- **Conversation History**: All conversations are saved in session state during the app runtime. For persistent storage, consider adding database integration.
+- **Free Tier Optimization**: The app automatically trims conversation history and implements retry logic for rate limits.
 - For deployment, consider Streamlit Community Cloud, Hugging Face Spaces, or Docker.
 
 ## License

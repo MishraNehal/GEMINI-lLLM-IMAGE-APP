@@ -1,6 +1,8 @@
 import io
+import json
 import streamlit as st
 from PIL import Image
+from datetime import datetime
 
 from utils.env import load_env
 from utils.image_utils import to_png_bytes
@@ -131,6 +133,35 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Conversation history management functions
+def save_conversation(messages, title=None):
+    """Save conversation to session state and local storage"""
+    if not title:
+        title = f"Conversation {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    
+    conversation = {
+        "title": title,
+        "timestamp": datetime.now().isoformat(),
+        "messages": messages
+    }
+    
+    if 'saved_conversations' not in st.session_state:
+        st.session_state['saved_conversations'] = []
+    
+    st.session_state['saved_conversations'].append(conversation)
+    return title
+
+def load_conversation(conversation):
+    """Load a saved conversation"""
+    st.session_state['messages'] = conversation['messages']
+    st.success(f"Loaded conversation: {conversation['title']}")
+
+def delete_conversation(index):
+    """Delete a saved conversation"""
+    if 'saved_conversations' in st.session_state:
+        deleted = st.session_state['saved_conversations'].pop(index)
+        st.success(f"Deleted conversation: {deleted['title']}")
+
 # Professional header with enhanced typography
 st.markdown('<h1 class="main-title">Gemini LLM + Image App</h1>', unsafe_allow_html=True)
 st.markdown('<p class="main-subtitle">Advanced AI-powered chat and image analysis platform</p>', unsafe_allow_html=True)
@@ -150,6 +181,7 @@ with st.sidebar:
             • AI Chat with Gemini<br>
             • Image Analysis & Q&A<br>
             • Image Generation<br>
+            • Conversation History<br>
             • Multi-model Support<br>
             • Free Tier Optimized
         </p>
@@ -177,7 +209,7 @@ with st.sidebar:
             )
             st.success("Client initialized successfully!")
 
-tabs = st.tabs(["Chat", "Image Analysis", "Image Generation"])
+tabs = st.tabs(["Chat", "Image Analysis", "Image Generation", "Conversation History"])
 
 with tabs[0]:
     st.markdown("""
@@ -293,5 +325,64 @@ with tabs[2]:
                 st.image(Image.open(io.BytesIO(img_bytes)), use_column_width=True)
             else:
                 st.info("Image generation is not available with your current model or account tier. You can still use the Image Analysis tab for analyzing uploaded images.")
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with tabs[3]:
+    st.markdown("""
+    <div style="
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+    ">
+        <h3 style="margin: 0 0 1.5rem 0; color: #495057;">Conversation History</h3>
+    """, unsafe_allow_html=True)
+    
+    # Save current conversation
+    if 'messages' in st.session_state and st.session_state['messages']:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            save_title = st.text_input("Conversation Title (optional)", 
+                                     value=f"Conversation {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        with col2:
+            if st.button("Save Conversation", use_container_width=True):
+                title = save_conversation(st.session_state['messages'], save_title)
+                st.success(f"Saved: {title}")
+    
+    st.markdown("---")
+    
+    # Display saved conversations
+    if 'saved_conversations' in st.session_state and st.session_state['saved_conversations']:
+        st.markdown("**Saved Conversations:**")
+        
+        for i, conv in enumerate(st.session_state['saved_conversations']):
+            with st.expander(f"📁 {conv['title']} - {conv['timestamp'][:16]}"):
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    st.markdown(f"**Messages:** {len(conv['messages'])}")
+                    st.markdown(f"**Created:** {conv['timestamp'][:16]}")
+                
+                with col2:
+                    if st.button("Load", key=f"load_{i}", use_container_width=True):
+                        load_conversation(conv)
+                
+                with col3:
+                    if st.button("Delete", key=f"delete_{i}", use_container_width=True):
+                        delete_conversation(i)
+                        st.rerun()
+                
+                # Show conversation preview
+                st.markdown("**Preview:**")
+                for msg in conv['messages'][:3]:  # Show first 3 messages
+                    role = "You" if msg['role'] == 'user' else "Gemini"
+                    st.markdown(f"**{role}:** {msg['content'][:100]}{'...' if len(msg['content']) > 100 else ''}")
+                
+                if len(conv['messages']) > 3:
+                    st.markdown(f"*... and {len(conv['messages']) - 3} more messages*")
+    else:
+        st.info("No saved conversations yet. Start chatting to save your conversations!")
     
     st.markdown("</div>", unsafe_allow_html=True)
